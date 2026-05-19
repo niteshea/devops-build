@@ -1,0 +1,32 @@
+pipeline {
+  agent any
+  stages {
+    stage('Build') {
+      steps {
+        sh 'bash build.sh'
+      }
+    }
+    stage('Push') {
+      steps {
+        withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'USER', passwordVariable: 'PASS')]) {
+          sh '''
+            echo "$PASS" | docker login -u "$USER" --password-stdin
+            if [ "$GIT_BRANCH" = "origin/dev" ]; then
+              docker tag devops-app $USER/dev:latest
+              docker push $USER/dev:latest
+            elif [ "$GIT_BRANCH" = "origin/master" ]; then
+              docker tag devops-app $USER/prod:latest
+              docker push $USER/prod:latest
+            fi
+          '''
+        }
+      }
+    }
+    stage('Deploy') {
+      steps {
+        sh 'bash deploy.sh'
+      }
+    }
+  }
+}
+
