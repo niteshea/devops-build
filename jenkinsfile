@@ -8,6 +8,7 @@ pipeline {
     }
     stage('Push') {
       steps {
+        withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'USER', passwordVariable: 'PASS')]) {
           sh '''
             echo "$PASS" | docker login -u "$USER" --password-stdin
             if [ "$GIT_BRANCH" = "origin/dev" ]; then
@@ -28,4 +29,3 @@ pipeline {
     }
   }
 }
-
